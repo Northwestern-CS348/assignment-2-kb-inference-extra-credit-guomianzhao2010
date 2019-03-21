@@ -130,6 +130,31 @@ class KnowledgeBase(object):
         # Implementation goes here
         # Not required for the extra credit assignment
 
+ #make the helper function 
+    def helping(self, fact_rule, final_string, depth):
+        for item in fact_rule.supported_by:
+            final_string += "\t"*depth + "SUPPORTED BY\n"
+            final_string += "\t"*(depth+1)+"fact：" + str(item[0].statement)
+            if item[0].asserted:
+                final_string += " ASSERTED\n"
+
+            final_string += "\t"*depth+"rule: ("
+
+            for x in range(len(item[1].lhs)):
+                final_string += str(item[1].lhs[x])
+
+            final_string.join(",")
+            final_string+= ")"
+            final_string  += " -> " + str(item[1].rhs)
+           
+            if item[1].asserted:
+                final_string += " ASSERTED\n"
+                depth-1
+                return (final_string, depth)
+            else:
+                self.helping(item[1], final_string, depth+1)
+
+
     def kb_explain(self, fact_or_rule):
         """
         Explain where the fact or rule comes from
@@ -143,6 +168,45 @@ class KnowledgeBase(object):
         ####################################################
         # Student code goes here
 
+        #if it is a rule
+        if isinstance(fact_or_rule, Rule):
+            if not self._get_rule(fact_or_rule):
+                return "Rule is not in the KB"
+            final_string = "rule: ("
+
+            for j in range(len(fact_or_rule.lhs)):
+                final_string += str(fact_or_rule.lhs[j])
+                final_string.join(",")
+                final_string += ")"
+                final_string += " -> " + str(fact_or_rule.rhs)
+
+            if fact_or_rule.asserted:
+                final_string += " ASSERTED"
+
+            if fact_or_rule.supported_by == []:
+                return final_string
+
+            else:
+                final_string += "\n"
+                depth = 1
+                self.helping(fact_or_rule, final_string, depth)
+
+        #if it is a fact
+        elif isinstance(fact_or_rule, Fact):
+            if not self._get_fact(fact_or_rule):
+                return "Fact is not in the KB"
+            final_string = "fact: "+str(fact_or_rule.statement)
+       
+            if fact_or_rule.supported_by == []:
+                return final_string
+            
+            else:
+                final_string += "\n"
+                depth = 1
+                self.helping(fact_or_rule, final_string, depth)
+
+        else:
+            return False
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
